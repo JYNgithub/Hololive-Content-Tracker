@@ -106,7 +106,6 @@ def save_to_csv_dynamic(data, filename):
             writer.writerow([item['txt'], item['href'], item['cat']])
     logging.info(f"Results saved to {filename}")
 
-
 def main():
     starttime = time.time()
     driver = setup_driver()
