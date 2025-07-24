@@ -1,5 +1,21 @@
 from contextlib import contextmanager
 from nicegui import ui
+import pandas as pd
+from typing import Union, List
+
+#########################################################
+# Configuration
+#########################################################
+
+# Let app content fill full viewport height
+ui.context.client.content.classes('h-screen')
+
+# Dummy data
+dummy_df = pd.DataFrame([
+    [12, 45, 78, 23, 56, 89, 34, 67],
+    [90, 11, 22, 33, 44, 55, 66, 77],
+    [88, 76, 54, 32, 10, 98, 76, 54]
+], columns=[f'col{i+1}' for i in range(8)])
 
 #########################################################
 # Utility functions
@@ -14,30 +30,40 @@ def clickable_img_button(image_path: str, target_page: str):
         ui.image(image_path).on('click', lambda: ui.navigate.to(target_page)).classes('cursor-pointer object-cover w-full h-full')
 
 @contextmanager
-def frame(title: str):
+def layout(title: str, image_path: str, grid_items: pd.DataFrame, label_text: str):
     """
-    Sets up basic structure for each page
+    Full page layout including header, sidebar, footer, and content.
+
+    Args:
+        title (str): Page title (not used yet, but can be shown in content)
+        image_path (str): Path to the image for the left column
+        grid_items (pd.DataFrame): A single-row DataFrame (max 16 values)
+        label_text (str): Text to display below the grid
     """
+    # Header
     with ui.header().classes('row items-center'):
         ui.label("Test Web App").classes('font-bold text-white')
+    # Footer
     with ui.footer().classes('justify-center'):
         ui.label('Test Web App')
-    with ui.left_drawer().props('width=290').classes('bg-blue-100') as left_drawer:
+    # Sidebar
+    with ui.left_drawer().props('width=300').classes('bg-blue-100'):
         with ui.column().classes('p-2').style('gap: 12px'):
             with ui.row().classes('justify-between'):
-                # def clickable_img_button(image_path: str, target_page: str):
-                #     """
-                #     Turns an image into a standardized clickable button that navigates to a specified page
-                #     """
-                #     with ui.element('div').style('width: 110px; height: 110px; overflow: hidden;'):
-                #         ui.image(image_path).on('click', lambda: ui.navigate.to(target_page)).classes('cursor-pointer object-cover w-full h-full')
                 clickable_img_button('assets/flower1.jfif', '/page1')
                 clickable_img_button('assets/flower2.jfif', '/page2')
             with ui.row().classes('justify-between'):
                 clickable_img_button('assets/flower3.jpg', '/page3')
-    with ui.column():
-        yield
-        
+    # Main content
+    with ui.row().classes('w-full flex-nowrap items-start gap-4'):
+        with ui.column().style('width: 35%'):
+            ui.image(image_path)
+        with ui.column().style('width: 30%'):
+            with ui.list():
+                for col, val in grid_items.iloc[0].items():
+                    ui.item(f'{col}: {val}')
+            ui.label(label_text).classes('mt-4 font-semibold')
+
 #########################################################
 # Page Layout
 #########################################################
@@ -46,27 +72,37 @@ def frame(title: str):
 @ui.page('/')
 @ui.page('/page1')
 def page1():
-    with frame('Page One'):
-        with ui.column():
-            ui.markdown('## This is **Column 1**')
-        with ui.column():
-            ui.markdown('## This is **Column 2**')
+    row_df = dummy_df.iloc[[0]]
+    layout(
+        title='Page One',
+        image_path='assets/flower1.jfif',
+        grid_items=row_df,
+        label_text='Page 1 Data Overview'
+    )
 
 # Page 2
 @ui.page('/page2')
 def page2():
-    with frame('Page Two'):
-        ui.markdown('## You are on **Page Two**')
-
-        ui.button('Back to Page One', on_click=lambda: ui.navigate.to('/page1'))
+    row_df = dummy_df.iloc[[1]]
+    layout(
+        title='Page Two',
+        image_path='assets/flower2.jfif',
+        grid_items=row_df,
+        label_text='Page 2 Data Overview'
+    )
+    # ui.button('Back to Page One', on_click=lambda: ui.navigate.to('/page1'))
 
 # Page 3
 @ui.page('/page3')
 def page3():
-    with frame('Page Three'):
-        ui.markdown('## You are on **Page Three**')
-
-        ui.button('Back to Page One', on_click=lambda: ui.navigate.to('/page1'))
+    row_df = dummy_df.iloc[[2]]
+    layout(
+        title='Page Three',
+        image_path='assets/flower3.jpg',
+        grid_items=row_df,
+        label_text='Page 3 Data Overview'
+    )
+    # ui.button('Back to Page One', on_click=lambda: ui.navigate.to('/page1'))
 
 # Run App
 ui.run(title='Test Web App')
