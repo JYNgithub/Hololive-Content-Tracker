@@ -3,7 +3,6 @@ import time
 import csv
 import html
 import re
-import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -12,7 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Note: To scrape additional content, adjustments are made in scrape_talent_info_dynamic and 
+# Note: To scrape additional content, adjustments are made in scrape_talent_info_dynamic and _sort_columns
 
 ############################################
 # Configuration
@@ -209,6 +208,11 @@ def main():
 
         # Save the dynamic data to CSV
         save_to_csv_dynamic(data_dynamic_all, data_path)
+        
+        # # Push to GitHub
+        # subprocess.run(["git", "add", "assets/"], check=True)
+        # subprocess.run(["git", "commit", "-m", "updated data"], check=True)
+        # subprocess.run(["git", "push", "origin", "main"], check=True)
 
     finally:
         driver.quit()
