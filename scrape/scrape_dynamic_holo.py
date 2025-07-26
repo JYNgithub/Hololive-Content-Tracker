@@ -48,21 +48,6 @@ def get_talent_urls(driver, url):
     except Exception as e:
         logging.error(f"Error fetching talent urls: {e}")
         return []
-
-def scrape_talent_info_static(driver, url):
-    try:
-        driver.get(url)
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".right_box .bg_box h1")))
-        talent_info = driver.execute_script("""
-            const h1 = document.querySelector('.right_box .bg_box h1');
-            return h1?.childNodes[0]?.textContent.trim();
-        """)
-        logging.info(f"Extracted basic info of {talent_info}")
-        time.sleep(1.5)
-        return talent_info
-    except Exception as e:
-        logging.warning(f"Failed to extract basic info from {url}: {e}")
-        return None
     
 def scrape_talent_info_dynamic(driver, url):
     try:
@@ -90,13 +75,6 @@ def scrape_talent_info_dynamic(driver, url):
     except Exception as e:
         logging.warning(f"Failed to extract programs from {url}: {e}")
         return []
-
-def save_to_csv_static(data, filename):
-    with open(filename, "w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(["Name", "URL"])  
-        writer.writerows(data)
-    logging.info(f"Results saved to {filename}")
     
 def save_to_csv_dynamic(data, filename):
     with open(filename, "w", newline="", encoding="utf-8") as csvfile:
@@ -111,21 +89,13 @@ def main():
     driver = setup_driver()
     try:
         all_urls = get_talent_urls(driver, base_url)
-        data_static_all = []
         data_dynamic_all = []
-        
         for url in all_urls:
-            data_static = scrape_talent_info_static(driver, url)
-            if data_static:
-                data_static_all.append((data_static, url))
-                
             data_dynamic = scrape_talent_info_dynamic(driver, url)
             if data_dynamic:
                 for item in data_dynamic:
                     data_dynamic_all.append((item['txt'], item['href'], item['cat']))
-                    
-        logging.info(f"Successfully extracted {len(data_static_all)} talents and {len(data_dynamic_all)} programs.")
-        save_to_csv_static(data_static_all, "talent_info.csv")
+        logging.info(f"Successfully extracted {len(data_dynamic_all)} programs.")
         save_to_csv_dynamic(data_dynamic_all, "talent_schedule.csv")
     finally:
         driver.quit()
