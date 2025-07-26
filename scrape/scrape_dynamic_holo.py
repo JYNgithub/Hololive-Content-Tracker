@@ -3,7 +3,8 @@ import time
 import csv
 import html
 import re
-import pandas as pd
+import subprocess
+from prefect import flow, task 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -12,7 +13,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Note: To scrape additional content, adjustments are made in scrape_talent_info_dynamic and 
+# Note: This is meant to run automatically with an orchestration tool
+
+# Note: To scrape additional content, adjustments are made in scrape_talent_info_dynamic and _sort_columns 
 
 ############################################
 # Configuration
@@ -27,6 +30,7 @@ data_path = "./data/talent_schedule.csv"
 # Utility Functions
 ############################################
 
+@task
 def setup_driver():
     """
     Sets up the Chrome WebDriver with headless mode.
@@ -36,6 +40,7 @@ def setup_driver():
     options.add_argument("--headless")
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
+@task
 def get_talent_urls(driver, url):
     """
     Loops through the main talents page and returns a list of talent URLs.
@@ -67,6 +72,7 @@ def get_talent_urls(driver, url):
         logging.error(f"Error fetching talent urls: {e}")
         return []
     
+@task
 def scrape_talent_info_dynamic(driver, url):
     """
     Scrapes dynamic information from each talent page, including name and schedules.
@@ -124,6 +130,7 @@ def scrape_talent_info_dynamic(driver, url):
         logging.warning(f"Failed to extract info from {url}: {e}")
         return None
 
+@task
 def save_to_csv_dynamic(data, filename):
     """
     Saves the scraped dynamic talent data to a CSV file.
@@ -190,6 +197,7 @@ def _sort_columns(key):
         
     return (len(col_order), key)
 
+@flow
 def main():
 
     # Initialize the WebDriver and start the scraping process
@@ -209,6 +217,11 @@ def main():
 
         # Save the dynamic data to CSV
         save_to_csv_dynamic(data_dynamic_all, data_path)
+        
+        # # Push to GitHub
+        # subprocess.run(["git", "add", "assets/"], check=True)
+        # subprocess.run(["git", "commit", "-m", "updated data"], check=True)
+        # subprocess.run(["git", "push", "origin", "main"], check=True)
 
     finally:
         driver.quit()
