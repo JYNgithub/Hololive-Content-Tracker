@@ -77,6 +77,8 @@ def scrape_talent_info_static(driver, url):
 
     try:
         driver.get(url)
+
+        # Wait for name to load, ideally would wait for other elements too
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, ".right_box .bg_box h1"))
         )
@@ -89,7 +91,7 @@ def scrape_talent_info_static(driver, url):
 
         # Extract information from the dd elements
         talent_info = driver.execute_script("""
-            function getDD(labelText) {
+            function scrape(labelText) {
                 const normalize = str => str.trim().toLowerCase().replace(/\s+/g, "");
                 const target = normalize(labelText);
                 const dtList = Array.from(document.querySelectorAll("dt"));
@@ -97,11 +99,11 @@ def scrape_talent_info_static(driver, url):
                 return dt?.nextElementSibling?.textContent.trim() || null;
             }
             return {
-                birthday: getDD("Birthday"),
-                height: getDD("Height"),
-                unit: getDD("Unit"),
-                fanName: getDD("Fan Name"),
-                hashtags: getDD("Hashtags")
+                birthday: scrape("Birthday"),
+                height: scrape("Height"),
+                unit: scrape("Unit"),
+                fanName: scrape("Fan Name"),
+                hashtags: scrape("Hashtags")
             };
         """)
 
@@ -122,6 +124,7 @@ def save_to_csv_static(data, filename):
         data: List of dictionaries containing talent information.
         filename: The name of the CSV file to save the data.
     """
+
     with open(filename, "w", newline="", encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["Name", "Birthday", "Height", "Unit", "Fan Name", "Hashtags", "URL"])
@@ -144,6 +147,7 @@ def _clean_value(value):
     Args:
         value: A single string value in a dictionary to clean.
     """
+
     # Handle missing values
     if not value:
         return "-"
