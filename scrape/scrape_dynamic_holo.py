@@ -208,11 +208,6 @@ def main():
 
         # Save the dynamic data to CSV
         save_to_csv_dynamic(data_dynamic_all, data_path)
-        
-        # # Push to GitHub
-        # subprocess.run(["git", "add", "assets/"], check=True)
-        # subprocess.run(["git", "commit", "-m", "updated data"], check=True)
-        # subprocess.run(["git", "push", "origin", "main"], check=True)
 
     finally:
         driver.quit()
