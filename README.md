@@ -7,9 +7,9 @@ TODO: Find way to create multiple pages in one loop, instead of calling one by o
 
 ## Current objectives:
 1. Script to scrape basic talent information ✅
-2. Script to scrape talents' latest schedule ✅
-2.5. Automate point 2
-3. Integrate AI model for translation  
+2. Script to scrape talents' latest schedule + GitHub Actions ✅
+3. Integrate AI model for translation for point 2
 4. Script to extract analytics through YouTube API
-5. Deployment 
+5. Integration
+6. Deployment 
 
