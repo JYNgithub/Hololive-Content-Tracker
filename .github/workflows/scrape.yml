@@ -29,3 +29,12 @@ jobs:
 
       - name: Run scraper
         run: python scrape/scrape_dynamic_holo.py
+
+      - name: Commit CSV output
+        run: |
+          git config --global user.name "JYNgithub"
+          git config --global user.email "chongjinjye@gmail.com"
+          git add data/talent_schedule.csv
+          git commit -m "$(date -u +"%Y-%m-%d %H:%M UTC")" || echo "No changes to commit"
+          git push origin main
+
