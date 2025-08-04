@@ -26,14 +26,30 @@ data_path = "./data/talent_schedule.csv"
 # Utility Functions
 ############################################
 
+# def setup_driver():
+#     """
+#     Windows ver
+#     Sets up the Chrome WebDriver with headless mode.
+#     """
+
+#     options = Options()
+#     options.add_argument("--headless")
+    
+#     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
 def setup_driver():
     """
+    Linux ver
     Sets up the Chrome WebDriver with headless mode.
     """
-
+    
     options = Options()
     options.add_argument("--headless")
-    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.binary_location = "/usr/bin/chromium-browser"
+    
+    return webdriver.Chrome(service=Service("/usr/bin/chromedriver"), options=options)
 
 def get_talent_urls(driver, url):
     """
@@ -112,7 +128,7 @@ def scrape_talent_info_dynamic(driver, url):
             return result;
         """)
 
-        time.sleep(2.5)
+        time.sleep(1.5)
         return {
             "name": talent_name,
             "default_image": main_image,

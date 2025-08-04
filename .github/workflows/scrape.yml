@@ -1,0 +1,33 @@
+# .github/workflows/scrape.yml
+name: Daily Holo Scraper
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # every hour at minute 0
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Chromium & ChromeDriver
+        run: |
+          sudo apt update
+          sudo apt install -y chromium-browser chromium-chromedriver \
+            libglib2.0-0 libnss3 libgconf-2-4 libfontconfig1 libxss1 \
+            libappindicator1 libasound2
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scraper
+        run: python scrape/scrape_dynamic_holo.py
