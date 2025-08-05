@@ -152,7 +152,7 @@ async def data_preprocessing(data):
 
     try:
         if not data:
-            logging.warning("No data to convert.")
+            logging.error("No data to convert.")
             return pd.DataFrame()
 
         # Sort headers
@@ -180,10 +180,10 @@ async def data_preprocessing(data):
         # Save directly as CSV
         print(df.info())
         df.to_csv(data_path, index=False, encoding="utf-8")
-        logging.info("\nPreprocessing complete...")
+        logging.info("Preprocessing complete...")
 
     except Exception as e:
-        logging.warning(f"\nPreprocessing failed: {e}")
+        logging.error(f"Preprocessing failed: {e}")
 
 async def translate_text(translator, text):
     if pd.isna(text):
