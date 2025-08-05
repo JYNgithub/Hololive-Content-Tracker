@@ -10,3 +10,4 @@
 ## TODO:
 1. Get list of channel handles 
 2. Github Actions for static script
+3. Add cache for workflows
