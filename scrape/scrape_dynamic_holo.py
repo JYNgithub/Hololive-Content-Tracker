@@ -141,12 +141,12 @@ def scrape_talent_info_dynamic(driver, url):
         logging.warning(f"Failed to extract info from {url}: {e}")
         return None
 
-async def data_preprocessing(data, data_path):
+async def data_preprocessing(data):
     """
     Preprocesses a list of dictionaries to save data as CSV with async translation.
+    Note: Using googletrans==4.0.2 prevents dependency issues, but will need to handle async.
     Args:
         data: List of dictionaries
-        data_path: Path to save CSV
     """
     logging.info("Preprocessing data...")
 
@@ -155,16 +155,19 @@ async def data_preprocessing(data, data_path):
             logging.warning("No data to convert.")
             return pd.DataFrame()
 
+        # Sort headers
         all_keys = set()
         for row in data:
             all_keys.update(row.keys())
         header = sorted(all_keys, key=_sort_columns)
 
+        # Clean data
         cleaned_data = []
         for row in data:
             cleaned_row = {k: _clean_value(v) for k, v in row.items()}
             cleaned_data.append(cleaned_row)
 
+        # Convert to df for further processing
         df = pd.DataFrame(cleaned_data, columns=header)
 
         # Async translate JP to EN
@@ -174,6 +177,7 @@ async def data_preprocessing(data, data_path):
                 for i, val in df[col].items():
                     df.at[i, col] = await translate_text(translator, val)
 
+        # Save directly as CSV
         print(df.info())
         df.to_csv(data_path, index=False, encoding="utf-8")
         logging.info("\nPreprocessing complete...")
