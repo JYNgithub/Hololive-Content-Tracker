@@ -2,6 +2,7 @@ import logging
 import time
 import html
 import re
+import asyncio
 import pandas as pd
 from googletrans import Translator
 from selenium import webdriver
@@ -140,55 +141,54 @@ def scrape_talent_info_dynamic(driver, url):
         logging.warning(f"Failed to extract info from {url}: {e}")
         return None
 
-def data_preprocessing(data):
+async def data_preprocessing(data, data_path):
     """
-    Preprocesses a list of dictionaries to save data as CSV.
+    Preprocesses a list of dictionaries to save data as CSV with async translation.
     Args:
-        data: List of dictionaries 
+        data: List of dictionaries
+        data_path: Path to save CSV
     """
     logging.info("Preprocessing data...")
-    
+
     try:
         if not data:
             logging.warning("No data to convert.")
             return pd.DataFrame()
+
         all_keys = set()
-        
-        # Get sorted column names
         for row in data:
             all_keys.update(row.keys())
         header = sorted(all_keys, key=_sort_columns)
-        
-        # Clean data
+
         cleaned_data = []
         for row in data:
             cleaned_row = {k: _clean_value(v) for k, v in row.items()}
             cleaned_data.append(cleaned_row)
 
-        # Convert to dataframe for further processing
         df = pd.DataFrame(cleaned_data, columns=header)
 
-        # Translate JP to EN
+        # Async translate JP to EN
         translator = Translator()
         for col in df.columns:
             if col.lower().startswith("description"):
-                df[col] = df[col].apply(
-                    lambda val: (
-                        translator.translate(str(val), src='ja', dest='en').text
-                        if pd.notna(val) else val
-                    )
-                )
-                
-        # Understand data
+                for i, val in df[col].items():
+                    df.at[i, col] = await translate_text(translator, val)
+
         print(df.info())
-        
-        # Save data as CSV
         df.to_csv(data_path, index=False, encoding="utf-8")
-        
         logging.info("\nPreprocessing complete...")
-        
+
     except Exception as e:
         logging.warning(f"\nPreprocessing failed: {e}")
+
+async def translate_text(translator, text):
+    if pd.isna(text):
+        return text
+    try:
+        result = await translator.translate(str(text), src='ja', dest='en')
+        return result.text
+    except:
+        return text
 
 def _clean_value(value):
     """
@@ -250,7 +250,7 @@ def main():
         logging.info(f"Successfully extracted {len(data_dynamic_all)} talents.")
 
         # Preprocess data to save as csv
-        data_preprocessing(data_dynamic_all)
+        asyncio.run(data_preprocessing(data_dynamic_all))
 
     finally:
         driver.quit()
