@@ -142,11 +142,9 @@ def scrape_talent_info_dynamic(driver, url):
 
 def data_preprocessing(data):
     """
-    Preprocesses a list of dictionaries into a pandas DataFrame.
+    Preprocesses a list of dictionaries to save data as CSV.
     Args:
-        data: List of dictionaries
-    Returns:
-        A pandas DataFrame 
+        data: List of dictionaries 
     """
     logging.info("Preprocessing data...")
     
@@ -184,12 +182,13 @@ def data_preprocessing(data):
         # Understand data
         print(df.info())
         
+        # Save data as CSV
+        df.to_csv(data_path, index=False, encoding="utf-8")
+        
         logging.info("\nPreprocessing complete...")
-        return df
-    
+        
     except Exception as e:
         logging.warning(f"\nPreprocessing failed: {e}")
-        return None
 
 def _clean_value(value):
     """
@@ -250,11 +249,8 @@ def main():
                 data_dynamic_all.append(data_dynamic) # This is a list of dictionaries
         logging.info(f"Successfully extracted {len(data_dynamic_all)} talents.")
 
-        # Preprocess data
-        df = data_preprocessing(data_dynamic_all)
-
-        # Save the dynamic data to CSV
-        df.to_csv(data_path, index=False, encoding="utf-8")
+        # Preprocess data to save as csv
+        data_preprocessing(data_dynamic_all)
 
     finally:
         driver.quit()
