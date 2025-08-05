@@ -20,6 +20,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 ############################################
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("googletrans").setLevel(logging.WARNING)
 
 base_url = "https://hololive.hololivepro.com/en/talents"
 data_path = "./data/talent_schedule.csv"
@@ -178,7 +181,7 @@ async def data_preprocessing(data):
                     df.at[i, col] = await translate_text(translator, val)
 
         # Save directly as CSV
-        print(df.info())
+        print(f"\n{df.info()}")
         df.to_csv(data_path, index=False, encoding="utf-8")
         logging.info("Preprocessing complete...")
 
