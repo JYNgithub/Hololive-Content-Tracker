@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 load_dotenv()
 API_KEY = os.getenv("YT_API_KEY")
 CHANNEL_HANDLES = ['@NBA', '@ESPN']
-CUTOFF_DATE = datetime.now(timezone.utc) - timedelta(days=30)  
+EXTRACT_PERIOD = datetime.now(timezone.utc) - timedelta(days=182)  
 data_path = './data/talent_analytics.csv'
 
 ############################################
@@ -76,7 +76,7 @@ def extract_analytics(client, channel_id):
                 eventType="completed",  
                 type="video",
                 order="date",
-                publishedAfter=CUTOFF_DATE.isoformat(),
+                publishedAfter=EXTRACT_PERIOD.isoformat(),
                 maxResults=50,
                 pageToken=next_page
             ).execute()
@@ -105,7 +105,7 @@ def extract_analytics(client, channel_id):
                 pub_date = iso8601.parse_date(pub_date_str)
                 
                 # Date filter
-                if pub_date < CUTOFF_DATE:
+                if pub_date < EXTRACT_PERIOD:
                     continue
                 
                 # Calculate duration if available

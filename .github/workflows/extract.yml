@@ -24,3 +24,11 @@ jobs:
         env:
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
         run: python scrapers/extract_analytics.py
+
+      - name: Commit CSV output
+        run: |
+          git config --global user.name "JYNgithub"
+          git config --global user.email "chongjinjye@gmail.com"
+          git add data/talent_analytics.csv
+          git commit -m "$(date -u +"%Y-%m-%d %H:%M UTC")" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
