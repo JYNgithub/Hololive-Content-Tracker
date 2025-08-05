@@ -161,8 +161,8 @@ def _clean_value(value):
     value = html.unescape(value)
     # Replace double quotes with single quotes
     value = value.replace('"', "'")
-    # Remove problematic punctuation
-    value = value.replace(",", "")  # remove commas
+    # Remove commas
+    value = value.replace(",", "") 
     # Collapse multiple spaces
     value = re.sub(r"\s{2,}", " ", value)
     return value.strip()

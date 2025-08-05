@@ -1,8 +1,9 @@
 import logging
 import time
-import csv
 import html
 import re
+import pandas as pd
+from googletrans import Translator
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -39,7 +40,7 @@ data_path = "./data/talent_schedule.csv"
 
 def setup_driver():
     """
-    Linux ver
+    Linux (Ubuntu) ver
     Sets up the Chrome WebDriver with headless mode.
     """
     
@@ -139,29 +140,56 @@ def scrape_talent_info_dynamic(driver, url):
         logging.warning(f"Failed to extract info from {url}: {e}")
         return None
 
-def save_to_csv_dynamic(data, filename):
+def data_preprocessing(data):
     """
-    Saves the scraped dynamic talent data to a CSV file.
+    Preprocesses a list of dictionaries into a pandas DataFrame.
     Args:
-        data: List of dictionaries containing talent information.
-        filename: The name of the CSV file to save the data.
+        data: List of dictionaries
+    Returns:
+        A pandas DataFrame 
     """
-    if not data:
-        logging.warning("No data to write.")
-        return
-    all_keys = set()
-    for row in data:
-        all_keys.update(row.keys())
-    header = sorted(all_keys, key=_sort_columns)
-    with open(filename, "w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=header)
-        writer.writeheader()
-
+    logging.info("Preprocessing data...")
+    
+    try:
+        if not data:
+            logging.warning("No data to convert.")
+            return pd.DataFrame()
+        all_keys = set()
+        
+        # Get sorted column names
+        for row in data:
+            all_keys.update(row.keys())
+        header = sorted(all_keys, key=_sort_columns)
+        
+        # Clean data
+        cleaned_data = []
         for row in data:
             cleaned_row = {k: _clean_value(v) for k, v in row.items()}
-            writer.writerow(cleaned_row)
+            cleaned_data.append(cleaned_row)
 
-    logging.info(f"Results saved to {filename}")
+        # Convert to dataframe for further processing
+        df = pd.DataFrame(cleaned_data, columns=header)
+
+        # Translate JP to EN
+        translator = Translator()
+        for col in df.columns:
+            if col.lower().startswith("description"):
+                df[col] = df[col].apply(
+                    lambda val: (
+                        translator.translate(str(val), src='ja', dest='en').text
+                        if pd.notna(val) else val
+                    )
+                )
+                
+        # Understand data
+        print(df.info())
+        
+        logging.info("\nPreprocessing complete...")
+        return df
+    
+    except Exception as e:
+        logging.warning(f"\nPreprocessing failed: {e}")
+        return None
 
 def _clean_value(value):
     """
@@ -183,8 +211,8 @@ def _clean_value(value):
     value = html.unescape(value)
     # Replace double quotes with single quotes
     value = value.replace('"', "'")
-    # Remove problematic punctuation
-    value = value.replace(",", "")  # remove commas
+    # Remove commas
+    value = value.replace(",", "")  
     # Collapse multiple spaces
     value = re.sub(r"\s{2,}", " ", value)
 
@@ -222,8 +250,11 @@ def main():
                 data_dynamic_all.append(data_dynamic) # This is a list of dictionaries
         logging.info(f"Successfully extracted {len(data_dynamic_all)} talents.")
 
+        # Preprocess data
+        df = data_preprocessing(data_dynamic_all)
+
         # Save the dynamic data to CSV
-        save_to_csv_dynamic(data_dynamic_all, data_path)
+        df.to_csv(data_path, index=False, encoding="utf-8")
 
     finally:
         driver.quit()

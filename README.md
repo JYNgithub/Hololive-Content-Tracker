@@ -3,7 +3,8 @@
 ## Progress:
 Basic site structure is ready.
 
-TODO: Find way to create multiple pages in one loop, instead of calling one by one.
+TODO: Automate basic talent scrape per week
+TODO: Data preprocessing ini scraping script
 
 ## Current objectives:
 1. Script to scrape basic talent information ✅
