@@ -28,7 +28,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run scraper
-        run: python scrape/scrape_dynamic_holo.py
+        run: python scrapers/scrape_dynamic_holo.py
 
       - name: Commit CSV output
         run: |
