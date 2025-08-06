@@ -26,14 +26,30 @@ data_path = "./data/talent_info.csv"
 # Utility Functions
 ############################################
 
+# def setup_driver():
+#     """
+#     Windows ver
+#     Sets up the Chrome WebDriver with headless mode.
+#     """
+
+#     options = Options()
+#     options.add_argument("--headless")
+    
+#     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
 def setup_driver():
     """
+    Linux (Ubuntu) ver
     Sets up the Chrome WebDriver with headless mode.
     """
-
+    
     options = Options()
     options.add_argument("--headless")
-    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.binary_location = "/usr/bin/chromium-browser"
+    
+    return webdriver.Chrome(service=Service("/usr/bin/chromedriver"), options=options)
 
 def get_talent_urls(driver, url):
     """

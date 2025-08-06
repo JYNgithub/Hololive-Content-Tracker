@@ -1,9 +1,9 @@
-# .github/workflows/scrape.yml
-name: Daily Holo Scraper
+# .github/workflows/scrape_static.yml
+name: Monthly Holo Scraper
 
 on:
   schedule:
-    - cron: '0 * * * *'  # every hour at minute 0
+    - cron: '0 0 1 * *'  # monthly at 00:00 on the 1st
   workflow_dispatch:
 
 jobs:
@@ -28,13 +28,13 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run scraper
-        run: python scrapers/scrape_dynamic_holo.py
+        run: python scrapers/scrape_static_holo.py
 
       - name: Commit CSV output
         run: |
           git config --global user.name "JYNgithub"
           git config --global user.email "chongjinjye@gmail.com"
-          git add data/talent_schedule.csv
+          git add data/talent_info.csv
           git commit -m "$(date -u +"%Y-%m-%d %H:%M UTC")" || echo "No changes to commit"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
 
