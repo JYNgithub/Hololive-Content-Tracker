@@ -19,14 +19,22 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+      
       - name: Setup Chrome and ChromeDriver
         uses: browser-actions/setup-chrome@v1
         with:
           install-chromedriver: true
           install-dependencies: true
-
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
 
       - name: Run scraper
         run: python scrapers/scrape_static_holo.py
