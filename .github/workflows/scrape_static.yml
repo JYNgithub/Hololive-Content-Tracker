@@ -47,6 +47,6 @@ jobs:
 
       - name: Commit CSV output
         run: |
-          git add data/talent_schedule.csv
+          git add data/talent_info.csv
           git commit -m "$(date -u +"%Y-%m-%d %H:%M UTC")" || echo "No changes to commit"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
