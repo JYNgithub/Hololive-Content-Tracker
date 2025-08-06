@@ -3,7 +3,7 @@ name: Monthly Holo Scraper
 
 on:
   schedule:
-    - cron: '0 * * * *'  # monthly at 00:00 on the 1st
+    - cron: '0 0 1 * *'  # monthly at 00:00 on the 1st
   workflow_dispatch:
 
 jobs:
@@ -29,23 +29,24 @@ jobs:
 
       - name: Install Python dependencies
         run: pip install -r requirements.txt
-      
+
       - name: Setup Chrome and ChromeDriver
         uses: browser-actions/setup-chrome@v1
         with:
           install-chromedriver: true
           install-dependencies: true
 
+      - name: Configure Git & Pull Latest
+        run: |
+          git config --global user.name "JYNgithub"
+          git config --global user.email "chongjinjye@gmail.com"
+          git pull --rebase origin main
+
       - name: Run scraper
         run: python scrapers/scrape_static_holo.py
 
       - name: Commit CSV output
         run: |
-          git config --global user.name "JYNgithub"
-          git config --global user.email "chongjinjye@gmail.com"
-          git pull --rebase origin main
           git add data/talent_schedule.csv
           git commit -m "$(date -u +"%Y-%m-%d %H:%M UTC")" || echo "No changes to commit"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
-
-
