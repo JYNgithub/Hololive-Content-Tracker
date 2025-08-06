@@ -16,8 +16,9 @@ logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 
 load_dotenv()
 API_KEY = os.getenv("YT_API_KEY")
-CHANNEL_HANDLES = ['@NBA', '@ESPN']
-EXTRACT_PERIOD = datetime.now(timezone.utc) - timedelta(days=182)  
+df = pd.read_csv("./data/intermediate.csv")
+CHANNEL_HANDLES = df['Handle'].dropna().unique().tolist()
+EXTRACT_PERIOD = datetime.now(timezone.utc) - timedelta(days=7)  
 data_path = './data/talent_analytics.csv'
 
 ############################################
@@ -55,7 +56,7 @@ def extract_channel_id(client, handle):
 
     return channel_id
 
-def extract_analytics(client, channel_id):
+def extract_analytics(client, channel_id, handle):
     """
     Extract analytics one channel at a time
     
@@ -120,17 +121,18 @@ def extract_analytics(client, channel_id):
                 live_broadcast_content = video_data['snippet'].get('liveBroadcastContent', 'none')
                 
                 data.append({
-                    'videoId': vid_id,
+                    'channel_handle': handle,
+                    'video_id': vid_id,
                     'title': video_data['snippet']['title'],
-                    'publishedAt': pub_date_str,
-                    'liveBroadcastContent': live_broadcast_content,
-                    'actualStartTime': live_info.get('actualStartTime'),
-                    'actualEndTime': live_info.get('actualEndTime'),
-                    'scheduledStartTime': live_info.get('scheduledStartTime'),
-                    'durationHours': duration_hours,
-                    'viewCount': video_data.get('statistics', {}).get('viewCount', 0),
-                    'likeCount': video_data.get('statistics', {}).get('likeCount', 0),
-                    'commentCount': video_data.get('statistics', {}).get('commentCount', 0)
+                    'published_at': pub_date_str,
+                    'live_broadcast_content': live_broadcast_content,
+                    'actual_start_time': live_info.get('actualStartTime'),
+                    'actual_end_time': live_info.get('actualEndTime'),
+                    'scheduled_start_time': live_info.get('scheduledStartTime'),
+                    'duration_hours': duration_hours,
+                    'view_count': video_data.get('statistics', {}).get('viewCount', 0),
+                    'like_count': video_data.get('statistics', {}).get('likeCount', 0),
+                    'comment_count': video_data.get('statistics', {}).get('commentCount', 0)
                 })
                 
             logging.info(f"Extracted {len(videos_res['items'])} archived live broadcasts.")
@@ -179,17 +181,18 @@ def extract_analytics(client, channel_id):
                     live_broadcast_content = video_data['snippet'].get('liveBroadcastContent', 'none')
                     
                     data.append({
-                        'videoId': vid_id,
+                        'channel_handle': handle,
+                        'video_id': vid_id,
                         'title': video_data['snippet']['title'],
-                        'publishedAt': pub_date_str,
-                        'liveBroadcastContent': live_broadcast_content,
-                        'actualStartTime': live_info.get('actualStartTime'),
-                        'actualEndTime': live_info.get('actualEndTime'),
-                        'scheduledStartTime': live_info.get('scheduledStartTime'),
-                        'durationHours': duration_hours,
-                        'viewCount': video_data.get('statistics', {}).get('viewCount', 0),
-                        'likeCount': video_data.get('statistics', {}).get('likeCount', 0),
-                        'commentCount': video_data.get('statistics', {}).get('commentCount', 0)
+                        'published_at': pub_date_str,
+                        'live_broadcast_content': live_broadcast_content,
+                        'actual_start_time': live_info.get('actualStartTime'),
+                        'actual_end_time': live_info.get('actualEndTime'),
+                        'scheduled_start_time': live_info.get('scheduledStartTime'),
+                        'duration_hours': duration_hours,
+                        'view_count': video_data.get('statistics', {}).get('viewCount', 0),
+                        'like_count': video_data.get('statistics', {}).get('likeCount', 0),
+                        'comment_count': video_data.get('statistics', {}).get('commentCount', 0)
                     })
                     
                 logging.info(f"Extracted {len(videos_res['items'])} {event_type} broadcasts.")
@@ -254,11 +257,12 @@ def main():
         data_analytics_all = []
 
         # Get all talent channels to extract data
+        logging.info(f"Detected {len(CHANNEL_HANDLES)} to extract analytics.\n")
         for handle in CHANNEL_HANDLES:
             try:
                 channel_id = extract_channel_id(client, handle)
                 logging.info(f"Processing channel: {handle}")
-                data_analytics = extract_analytics(client, channel_id)
+                data_analytics = extract_analytics(client, channel_id, handle)
                 logging.info(f"{handle}: {len(data_analytics)} broadcasts found.")
                 data_analytics_all.extend(data_analytics)
             except Exception as e:
