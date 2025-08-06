@@ -10,4 +10,5 @@ Note to self: Monthly scraper currently running hourly to stress test
 5. Deployment 
 
 ## TODO:
-1. Add cache for workflows
+1. Verify workflows
+2. Add cache for workflows

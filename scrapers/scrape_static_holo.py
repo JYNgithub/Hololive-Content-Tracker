@@ -124,7 +124,7 @@ def scrape_talent_info_static(driver, url):
             };
         """)
 
-        time.sleep(2.5) # Best practice
+        time.sleep(1.5) # Best practice
         return {
             "name": talent_name,
             **talent_info,
