@@ -8,7 +8,6 @@
 5. Deployment 
 
 ## TODO:
-1. Assign keys to the 2 csvs, then add to .yml
-2. Verify workflows
+1. Verify workflows
 
 Note: 2 API keys needed if talent increase in the future
