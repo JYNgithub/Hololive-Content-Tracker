@@ -56,6 +56,100 @@ def extract_channel_id(client, handle):
 
     return channel_id
 
+# not used, remove when dual API implemented
+def extract_analytics_minquota(client, channel_id, handle):
+    data = []
+    stale_pages = 0
+    MAX_STALE_PAGES = 1
+
+    try:
+        uploads_playlist_id = client.channels().list(
+            part="contentDetails",
+            id=channel_id
+        ).execute()['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+
+        next_page = None
+        page_count = 0
+        logging.info(f"[{handle}] Starting to scan playlist for recent live broadcasts...")
+
+        while True:
+            page_count += 1
+            if page_count == 1:
+                logging.info(f"[{handle}] Checking first page of uploads...")
+            else:
+                logging.info(f"[{handle}] Checking page {page_count}...")
+
+            playlist_items = client.playlistItems().list(
+                part="contentDetails",
+                playlistId=uploads_playlist_id,
+                maxResults=50,
+                pageToken=next_page
+            ).execute()
+
+            video_ids = [item['contentDetails']['videoId'] for item in playlist_items['items']]
+            videos_res = client.videos().list(
+                part="snippet,liveStreamingDetails,statistics",
+                id=",".join(video_ids)
+            ).execute()
+
+            recent_found = False
+            for video_data in videos_res.get('items', []):
+                live_info = video_data.get('liveStreamingDetails')
+                live_flag = video_data['snippet'].get('liveBroadcastContent', 'none')
+
+                # Skip if not live-related
+                if live_flag not in ['live', 'upcoming', 'completed']:
+                    continue
+
+                # Skip if no liveStreamingDetails or no actualStartTime
+                actual_start_str = live_info.get('actualStartTime') if live_info else None
+                if not actual_start_str:
+                    continue
+
+                actual_start = iso8601.parse_date(actual_start_str)
+                if actual_start < EXTRACT_PERIOD:
+                    continue
+
+                recent_found = True
+                start = actual_start
+                end = iso8601.parse_date(live_info.get('actualEndTime', datetime.now(timezone.utc).isoformat()))
+                duration_hours = round((end - start).total_seconds() / 3600, 2)
+
+                data.append({
+                    'channel_handle': handle,
+                    'video_id': video_data['id'],
+                    'title': video_data['snippet']['title'],
+                    'published_at': video_data['snippet']['publishedAt'],
+                    'live_broadcast_content': live_flag,
+                    'actual_start_time': live_info.get('actualStartTime'),
+                    'actual_end_time': live_info.get('actualEndTime'),
+                    'scheduled_start_time': live_info.get('scheduledStartTime'),
+                    'duration_hours': duration_hours,
+                    'view_count': video_data.get('statistics', {}).get('viewCount', 0),
+                    'like_count': video_data.get('statistics', {}).get('likeCount', 0),
+                    'comment_count': video_data.get('statistics', {}).get('commentCount', 0)
+                })
+
+            if not recent_found:
+                stale_pages += 1
+                logging.info(f"[{handle}] No recent live broadcasts on page {page_count}. Stale count: {stale_pages}")
+                if stale_pages >= MAX_STALE_PAGES:
+                    logging.info(f"[{handle}] Reached {MAX_STALE_PAGES} stale pages. Stopping early.")
+                    break
+            else:
+                stale_pages = 0
+
+            next_page = playlist_items.get('nextPageToken')
+            if not next_page:
+                break
+
+        logging.info(f"[{handle}] Finished. Found {len(data)} recent live broadcasts.")
+
+    except Exception as e:
+        logging.warning(f"[{handle}] Extraction failed: {e}")
+
+    return data
+
 def extract_analytics(client, channel_id, handle):
     """
     Extract analytics one channel at a time
@@ -134,71 +228,12 @@ def extract_analytics(client, channel_id, handle):
                     'like_count': video_data.get('statistics', {}).get('likeCount', 0),
                     'comment_count': video_data.get('statistics', {}).get('commentCount', 0)
                 })
-                
-            logging.info(f"Extracted {len(videos_res['items'])} archived live broadcasts.")
             
             next_page = search_res.get('nextPageToken')
             if not next_page:
                 break
     except Exception as e:
         logging.warning(e)
-        
-    # Search for currently live and upcoming broadcasts
-    try: 
-        for event_type in ['live', 'upcoming']:
-            search_res = client.search().list(
-                part="snippet",
-                channelId=channel_id,
-                eventType=event_type,
-                type="video",
-                order="date",
-                maxResults=50
-            ).execute()
-            
-            if search_res.get('items'):
-                video_ids = [item['id']['videoId'] for item in search_res['items']]
-                videos_res = client.videos().list(
-                    part="snippet,liveStreamingDetails,contentDetails,status,statistics",
-                    id=','.join(video_ids)
-                ).execute()
-                
-                for video_data in videos_res['items']:
-                    live_info = video_data.get('liveStreamingDetails', {})
-                    if not live_info:
-                        continue
-                    
-                    vid_id = video_data['id']
-                    pub_date_str = video_data['snippet']['publishedAt']
-                    
-                    # Calculate duration for live streams
-                    duration_hours = None
-                    if event_type == 'live' and 'actualStartTime' in live_info:
-                        start_time = iso8601.parse_date(live_info['actualStartTime'])
-                        current_time = datetime.now(timezone.utc)
-                        duration_seconds = (current_time - start_time).total_seconds()
-                        duration_hours = round(duration_seconds / 3600, 2)
-                    
-                    live_broadcast_content = video_data['snippet'].get('liveBroadcastContent', 'none')
-                    
-                    data.append({
-                        'channel_handle': handle,
-                        'video_id': vid_id,
-                        'title': video_data['snippet']['title'],
-                        'published_at': pub_date_str,
-                        'live_broadcast_content': live_broadcast_content,
-                        'actual_start_time': live_info.get('actualStartTime'),
-                        'actual_end_time': live_info.get('actualEndTime'),
-                        'scheduled_start_time': live_info.get('scheduledStartTime'),
-                        'duration_hours': duration_hours,
-                        'view_count': video_data.get('statistics', {}).get('viewCount', 0),
-                        'like_count': video_data.get('statistics', {}).get('likeCount', 0),
-                        'comment_count': video_data.get('statistics', {}).get('commentCount', 0)
-                    })
-                    
-                logging.info(f"Extracted {len(videos_res['items'])} {event_type} broadcasts.")
-
-    except Exception as e:
-        logging.warning(e)  
                 
     return data
 
@@ -263,7 +298,7 @@ def main():
                 channel_id = extract_channel_id(client, handle)
                 logging.info(f"Processing channel: {handle}")
                 data_analytics = extract_analytics(client, channel_id, handle)
-                logging.info(f"{handle}: {len(data_analytics)} broadcasts found.")
+                logging.info(f"{handle}: {len(data_analytics)} completed livestreams found.\n")
                 data_analytics_all.extend(data_analytics)
             except Exception as e:
                 logging.error(f"Failed to process {handle}: {e}")

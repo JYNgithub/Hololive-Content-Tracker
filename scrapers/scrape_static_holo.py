@@ -3,6 +3,7 @@ import time
 import csv
 import html
 import re
+import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -134,28 +135,37 @@ def scrape_talent_info_static(driver, url):
         logging.warning(f"Failed to extract info from {url}: {e}")
         return None
 
-def save_to_csv_static(data, filename):
+def data_preprocessing(data):
     """
-    Saves the scraped talent data to a CSV file.
+    Preprocesses a list of dictionaries to save data as CSV.
     Args:
-        data: List of dictionaries containing talent information.
-        filename: The name of the CSV file to save the data.
+        data: List of dictionaries
     """
+    try:
+        if not data:
+            logging.warning("No data found to save.")
+            return
 
-    with open(filename, "w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(["Name", "Birthday", "Height", "Unit", "Fan Name", "Hashtags", "URL"])
-        for row_dict in data:
-            writer.writerow([
-                _clean_value(row_dict.get("name")),
-                _clean_value(row_dict.get("birthday")),
-                _clean_value(row_dict.get("height")),
-                _clean_value(row_dict.get("unit")),
-                _clean_value(row_dict.get("fanName")),
-                _clean_value(row_dict.get("hashtags")),
-                _clean_value(row_dict.get("url")),
-            ])
-    logging.info(f"Results saved to {filename}")
+        # Clean data
+        for item in data:
+            for key, val in item.items():
+                if isinstance(val, str):
+                    item[key] = _clean_value(val)
+
+        # Convert to df for further processing
+        df = pd.DataFrame(data)
+        
+        # Supplement key column
+        df_keys = pd.read_csv('./data/intermediate.csv')
+        df = df.merge(df_keys, on='Name', how='left')
+        df = df[['Handle'] + [col for col in df.columns if col != 'Handle']]
+        
+        # Save directly as CSV
+        df.to_csv(data_path, index=False, encoding="utf-8")
+        logging.info("Preprocessing complete...")
+
+    except Exception as e:
+        logging.error(f"Preprocessing failed: {e}")
 
 def _clean_value(value):
     """
@@ -201,7 +211,7 @@ def main():
         logging.info(f"Successfully extracted {len(data_static_all)} talents.")
 
         # Save the static data to CSV
-        save_to_csv_static(data_static_all, data_path)
+        data_preprocessing(data_static_all)
 
     finally:
         driver.quit()

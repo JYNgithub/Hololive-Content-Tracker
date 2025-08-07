@@ -179,9 +179,15 @@ async def data_preprocessing(data):
             if col.lower().startswith("description"):
                 for i, val in df[col].items():
                     df.at[i, col] = await translate_text(translator, val)
+                    
+        # Supplement key column            
+        df_keys = pd.read_csv('./data/intermediate.csv')
+        df.rename(columns={'name': 'Name'}, inplace=True)
+        df = df.merge(df_keys, on='Name', how='left')
+        df = df[['Handle'] + [col for col in df.columns if col != 'Handle']]
+        df.rename(columns={'Name': 'name'}, inplace=True)
 
         # Save directly as CSV
-        print(f"\n{df.info()}")
         df.to_csv(data_path, index=False, encoding="utf-8")
         logging.info("Preprocessing complete...")
 
