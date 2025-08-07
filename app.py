@@ -10,8 +10,13 @@ from typing import Union, List
 # Let app content fill full viewport height
 ui.context.client.content.classes('h-screen')
 
-# Dummy data
-df = pd.read_csv('.data/talent_info.csv')
+# Data loading (probably move this into scrape_dynamic script)
+df_info = pd.read_csv('./data/talent_info.csv')
+df_sche = pd.read_csv('./data/talent_schedule.csv')
+df = pd.merge(df_info, df_sche, on="Handle", how="inner")
+df['name'] = df['name_x'] 
+df.drop(columns=['name_x', 'name_y'], inplace=True)
+df = df.drop_duplicates()
 
 #########################################################
 # Utility functions
@@ -23,7 +28,7 @@ def clickable_img_button(image_path: str, target_page: str):
     Turns an image into a standardized clickable button that navigates to a specified page
     """
     with ui.element('div').style('width: 110px; height: 110px; overflow: hidden;'):
-        ui.image(image_path).on('click', lambda: ui.navigate.to(target_page)).classes('cursor-pointer object-cover w-full h-full')
+        ui.image(image_path).on('click', lambda: ui.run_javascript(f'window.location.href = "{target_page}"')).classes('cursor-pointer object-cover w-full h-full')
 
 @contextmanager
 def character_img_display(image_path: str, box_width: int = 300, box_height: int = 800):
@@ -53,15 +58,15 @@ def layout(title: str, image_path: str, row: pd.DataFrame, label_text: str, i: i
     """
     # Header
     with ui.header().classes('row items-center'):
-        ui.label("Test Web App").classes('font-bold text-white')
+        ui.label("Hololive Content Tracker").classes('font-bold text-white')
 
     # Footer
     with ui.footer().classes('justify-center'):
-        ui.label('Test Web App')
+        ui.label('Hololive Content Tracker')
 
     # Dynamic Sidebar 
-    with ui.left_drawer().props('width=300').classes('bg-blue-100'):
-        with ui.column().classes('p-2').style('gap: 12px'):
+    with ui.left_drawer().props('width=320').classes('bg-blue-100'):
+        with ui.grid(columns=2).classes('p-2 gap-4'):
             for sidebar_i, sidebar_row in df.iterrows():
                 page_name = f"/page{sidebar_i}"
                 img_path = sidebar_row['default_image']
@@ -88,14 +93,22 @@ def layout(title: str, image_path: str, row: pd.DataFrame, label_text: str, i: i
 #########################################################
 
 # Dynamic Pages
-for i, row in df.iterrows():
+for i in range(len(df)):
     route = f"/page{i}"
     @ui.page(route)
-    def _(i=i, row=row):  # bind loop variable
+    def _(i=i):
+        row = df.iloc[[i]]
         layout(
             title=f"Page {i}",
-            image_path=row['default_image'],
-            row=df.iloc[[i]],
-            label_text=f"Data for {row['name']}",
+            image_path=row['default_image'].iloc[0],
+            row=row,
+            label_text=f"Data for {row['name'].iloc[0]}",
             i=i
         )
+
+
+@ui.page('/')
+def index():
+    ui.label('Welcome! Redirecting...')
+    ui.timer(0.5, lambda: ui.navigate.to('/page0'))  # Redirect to first page
+ui.run()
