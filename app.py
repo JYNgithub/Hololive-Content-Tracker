@@ -77,7 +77,7 @@ def layout(title: str, image_path: str, row: pd.DataFrame, label_text: str, i: i
             
         with ui.column().style('width: 30%'):
             with ui.grid(columns=2).classes('gap-y-10 gap-x-2'):
-                for col in ['Name', 'Birthday']:
+                for col in ['name', 'birthday']:
                     val = row.iloc[0][col]
                     ui.label(f'{col}:').classes('font-medium')
                     ui.label(str(val))
@@ -96,6 +96,6 @@ for i, row in df.iterrows():
             title=f"Page {i}",
             image_path=row['default_image'],
             row=df.iloc[[i]],
-            label_text=f"Data for {row['Name']}",
+            label_text=f"Data for {row['name']}",
             i=i
         )

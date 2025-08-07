@@ -116,7 +116,7 @@ def extract_analytics_minquota(client, channel_id, handle):
                 duration_hours = round((end - start).total_seconds() / 3600, 2)
 
                 data.append({
-                    'channel_handle': handle,
+                    'handle': handle,
                     'video_id': video_data['id'],
                     'title': video_data['snippet']['title'],
                     'published_at': video_data['snippet']['publishedAt'],
@@ -215,7 +215,7 @@ def extract_analytics(client, channel_id, handle):
                 live_broadcast_content = video_data['snippet'].get('liveBroadcastContent', 'none')
                 
                 data.append({
-                    'channel_handle': handle,
+                    'handle': handle,
                     'video_id': vid_id,
                     'title': video_data['snippet']['title'],
                     'published_at': pub_date_str,
