@@ -120,7 +120,7 @@ def scrape_talent_info_static(driver, url):
                 birthday: scrape("Birthday"),
                 height: scrape("Height"),
                 unit: scrape("Unit"),
-                fanName: scrape("Fan Name"),
+                fan_name: scrape("Fan Name"),
                 hashtags: scrape("Hashtags")
             };
         """)
@@ -157,7 +157,7 @@ def data_preprocessing(data):
         
         # Supplement key column
         df_keys = pd.read_csv('./data/intermediate.csv')
-        df = df.merge(df_keys, on='Name', how='left')
+        df = df.merge(df_keys, on='name', how='left')
         df = df[['Handle'] + [col for col in df.columns if col != 'Handle']]
         
         # Save directly as CSV

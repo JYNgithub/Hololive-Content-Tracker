@@ -182,10 +182,8 @@ async def data_preprocessing(data):
                     
         # Supplement key column            
         df_keys = pd.read_csv('./data/intermediate.csv')
-        df.rename(columns={'name': 'Name'}, inplace=True)
-        df = df.merge(df_keys, on='Name', how='left')
+        df = df.merge(df_keys, on='name', how='left')
         df = df[['Handle'] + [col for col in df.columns if col != 'Handle']]
-        df.rename(columns={'Name': 'name'}, inplace=True)
 
         # Save directly as CSV
         df.to_csv(data_path, index=False, encoding="utf-8")
