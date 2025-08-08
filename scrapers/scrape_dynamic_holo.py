@@ -188,6 +188,15 @@ async def data_preprocessing(data):
         # Join data with talent_info
         df_info = pd.read_csv('./data/talent_info.csv')
         df = df.merge(df_info, on=["Handle", "name"], how="inner")
+        
+        # Sorting rows for sidebar appearance
+        df_with_image = df[df['image1'].notna()]
+        df_no_image = df[df['image1'].isna()]
+        df = pd.concat([df_with_image, df_no_image])
+        mask_bracket = df['name'].str.contains(r'\[.*\]', na=False)
+        df = pd.concat([df[~mask_bracket], df[mask_bracket]])
+        df = df.reset_index(drop=True)
+        df.index += 1
 
         # Save directly as CSV
         df.to_csv(data_path, index=False, encoding="utf-8")

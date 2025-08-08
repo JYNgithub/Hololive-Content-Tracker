@@ -1,11 +1,16 @@
 import pandas as pd
 
 # Data loading (probably move this into scrape_dynamic script)
-df_info = pd.read_csv('./data/talent_info.csv')
-df_sche = pd.read_csv('./data/talent_schedule.csv')
-df = pd.merge(df_info, df_sche, on="Handle", how="inner")
-df['name'] = df['name_x'] 
-df.drop(columns=['name_x', 'name_y'], inplace=True)
-df = df[~((df['name'] == 'Mococo Abyssgard') & (df['default_image'].str.lower().str.contains('fuwawa')))]
-df = df[~((df['name'] == 'Fuwawa Abyssgard') & (df['default_image'].str.lower().str.contains('mococo')))]
-df.to_csv('test.csv')
+df = pd.read_csv('./data/talent_schedule.csv')
+df_with_image = df[df['image1'].notna()]
+df_no_image = df[df['image1'].isna()]
+df_sorted = pd.concat([df_with_image, df_no_image])
+
+mask_bracket = df_sorted['name'].str.contains(r'\[.*\]', na=False)
+df_final = pd.concat([df_sorted[~mask_bracket], df_sorted[mask_bracket]])
+df_final = df_final.reset_index(drop=True)
+df_final.index += 1
+
+# df_final.to_csv('./data/talent_schedule.csv')
+
+
