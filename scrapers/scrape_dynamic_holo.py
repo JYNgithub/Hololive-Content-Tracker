@@ -187,11 +187,9 @@ async def data_preprocessing(data):
         
         # Join data with talent_info
         df_info = pd.read_csv('./data/talent_info.csv')
-        df = df.merge(df_info, on="Handle", how="inner")
+        df = df.merge(df_info, on=["Handle", "name"], how="inner")
         df['name'] = df['name_x'] 
         df.drop(columns=['name_x', 'name_y'], inplace=True)
-        df = df[~((df['name'] == 'Mococo Abyssgard') & (df['default_image'].str.lower().str.contains('fuwawa')))]
-        df = df[~((df['name'] == 'Fuwawa Abyssgard') & (df['default_image'].str.lower().str.contains('mococo')))]
 
         # Save directly as CSV
         df.to_csv(data_path, index=False, encoding="utf-8")
