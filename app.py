@@ -303,4 +303,8 @@ for i in range(len(df)):
 def index():
     ui.label('Welcome! Redirecting...')
     ui.timer(0.5, lambda: ui.navigate.to('/page0'))  # Redirect to first page
-ui.run()
+    
+ui.run(
+    title = 'Hololive Content Tracker',
+    favicon = './etc/site_logo.ico'
+)
