@@ -315,5 +315,7 @@ def index():
     
 ui.run(
     title = 'Hololive Content Tracker',
-    favicon = './etc/site_logo.ico'
+    favicon = './etc/site_logo.ico',
+    port=int(os.environ.get('PORT', 8080)),
+    host='0.0.0.0'
 )
