@@ -42,11 +42,13 @@ def clickable_img_button(image_path: str, target_page: str, live: bool = False, 
         box_height
     """
     
+    # Create a cached filename 
     p = urlparse(image_path)
     ext = os.path.splitext(os.path.basename(p.path))[1] or ".png"
     name = hashlib.sha1(image_path.encode()).hexdigest() + ext
     local_input = os.path.join(CACHE_DIR, name)
 
+    # Downloads and saves the image file to local cache
     if not os.path.exists(local_input):
         resp = requests.get(image_path, stream=True, timeout=10)
         resp.raise_for_status()
@@ -54,6 +56,7 @@ def clickable_img_button(image_path: str, target_page: str, live: bool = False, 
             for chunk in resp.iter_content(8192):
                 f.write(chunk)
 
+    # UI of button
     zoom_in = 1.5
     with ui.element('div').style(
         f'position: relative; width: {box_width}px; height: {box_height}px; overflow: hidden; '
@@ -77,7 +80,7 @@ def clickable_img_button(image_path: str, target_page: str, live: bool = False, 
             ):
                 pass
 
-    # Add keyframes for pulse animation globally (run once)
+    # Add keyframes for pulse animation globally
     if not hasattr(clickable_img_button, 'pulse_style_added'):
         ui.run_javascript('''
             const style = document.createElement('style');
@@ -103,11 +106,13 @@ def character_img_display(image_path: str, box_width: int = 300, box_height: int
         box_height
     """
     
+    # Create a cached filename
     p = urlparse(image_path)
     ext = os.path.splitext(os.path.basename(p.path))[1] or ".png"
     name = hashlib.sha1(image_path.encode()).hexdigest() + ext
     local_input = os.path.join(CACHE_DIR, name)
 
+    # Downloads and saves the image file to local cache
     if not os.path.exists(local_input):
         resp = requests.get(image_path, stream=True, timeout=10)
         resp.raise_for_status()
@@ -115,6 +120,7 @@ def character_img_display(image_path: str, box_width: int = 300, box_height: int
             for chunk in resp.iter_content(8192):
                 f.write(chunk)
 
+    # Display resized image with padding
     padded_name = hashlib.sha1(f"{image_path}_{box_width}x{box_height}".encode()).hexdigest() + ext
     padded_path = os.path.join(PADDED_DIR, padded_name)
     if not os.path.exists(padded_path):
@@ -146,11 +152,13 @@ def clickable_wide_button(image_path: str, youtube_link: str, box_width: int = 3
         box_height
     """
     
+    # Create a cached filename
     p = urlparse(image_path)
     ext = os.path.splitext(os.path.basename(p.path))[1] or ".png"
     name = hashlib.sha1(image_path.encode()).hexdigest() + ext
     local_input = os.path.join(CACHE_DIR, name)
 
+    # Downloads and saves the image file to local cache
     if not os.path.exists(local_input):
         resp = requests.get(image_path, stream=True, timeout=10)
         resp.raise_for_status()
@@ -158,6 +166,7 @@ def clickable_wide_button(image_path: str, youtube_link: str, box_width: int = 3
             for chunk in resp.iter_content(8192):
                 f.write(chunk)
 
+    # UI
     with ui.element('div').style(
         f'width: {box_width}px; height: {box_height}px; overflow: hidden; '
         'border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; cursor: pointer; '
