@@ -8,7 +8,7 @@ The site currently only supports desktop use.
 
 ## Description
 
-This is a Hololive Content Tracker - a web application that monitors and displays upcoming content from Hololive talents.
+This is Hololive Content Tracker - a web application that monitors and displays upcoming content from Hololive talents.
 
 **What it does:**
 1. Shows upcoming scheduled streams/content for each talent with thumbnails and details
