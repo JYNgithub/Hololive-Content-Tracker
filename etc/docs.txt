@@ -1,0 +1,220 @@
+# Hololive Content Tracker - Technical Documentation
+- This doc was generated using Claude cuz im too lazy, just wanted a general summary for my own use
+- Updated as of 11 August 2025
+
+## Project Overview
+A full-stack web scraping and analytics platform that automatically tracks 
+Hololive talent schedules and YouTube performance metrics with automated 
+deployment pipelines.
+
+---
+
+## Linux System Administration & CI/CD Deployment
+
+**Linux System Administration:**
+- Configured headless Chrome with specific flags (--no-sandbox, --disable-dev-shm-usage) 
+  for containerized environments
+- Set custom binary locations (/usr/bin/chromium-browser) and driver paths 
+  (/usr/bin/chromedriver) for Ubuntu systems
+- Implemented cross-platform driver setup functions with conditional logic 
+  for Windows vs Linux environments
+- Managed package dependencies and browser installations through GitHub Actions 
+  Ubuntu runners
+
+**CI/CD Environment Management:**
+- Utilized Ubuntu-specific package managers and browser installation workflows
+- Configured Git credentials and authentication within Ubuntu CI environments
+- Handled file permissions and directory structures for cache and data storage
+- Implemented proper logging and debugging strategies for headless server environments
+- Managed environment variables and secrets integration within Ubuntu GitHub runners
+
+---
+
+## File Analysis
+
+### 1. `app.py` - Main Web Application
+
+**Tools Used:**
+- NiceGUI (Python web framework)
+- Pandas (data manipulation)
+- PIL/Pillow (image processing)
+- Requests (HTTP client)
+- Hashlib (file caching)
+
+**Skills:**
+- Full-stack web development
+- Responsive UI design with CSS
+- Image caching and optimization
+- Dynamic routing and navigation
+- Data visualization and presentation
+
+**Description:**
+Main web application serving a responsive dashboard. Implements intelligent 
+image caching system using SHA-1 hashing, dynamic page generation for each 
+talent, real-time data integration from CSV sources, and responsive layout 
+with sidebar navigation. Features include hover effects, live indicators, 
+clickable content cards, and integrated analytics display.
+
+---
+
+### 2. `extract_analytics.py` - YouTube Analytics Extractor
+
+**Tools Used:**
+- YouTube Data API v3
+- Google API Client Library
+- ISO8601 datetime parsing
+- Python dotenv (environment management)
+- Pandas (data processing)
+
+**Skills:**
+- API integration and authentication
+- Rate limiting and quota management
+- Datetime manipulation and timezone handling
+- Data aggregation and filtering
+- Error handling and logging
+
+**Description:**
+Automated YouTube analytics extraction system that queries the YouTube API 
+for livestream performance data. Implements intelligent pagination to minimize 
+API quota usage, filters content by date ranges (past 7 days), extracts 
+comprehensive metrics (duration, views, likes, comments), and handles edge 
+cases for ongoing/scheduled streams. Uses channel handle to ID mapping and 
+robust error recovery.
+
+---
+
+### 3. `scrape_dynamic_holo.py` - Dynamic Content Scraper
+
+**Tools Used:**
+- Selenium WebDriver with Chrome
+- Google Translate API (googletrans)
+- Asyncio (asynchronous processing)
+- Pandas (data manipulation)
+- Regular expressions
+
+**Skills:**
+- Advanced web scraping with dynamic content
+- Headless browser automation
+- Asynchronous programming
+- Multi-language content handling
+- Data cleaning and normalization
+- Cross-platform compatibility (Windows/Linux)
+
+**Description:**
+Sophisticated web scraper targeting dynamic JavaScript-rendered content on 
+the official Hololive website. Implements explicit waits for element loading, 
+JavaScript execution for data extraction, automatic translation of Japanese 
+descriptions to English, comprehensive data cleaning (HTML entities, quotes, 
+formatting), and intelligent column sorting. Handles graduated talents and 
+missing data gracefully.
+
+---
+
+### 4. `scrape_static_holo.py` - Static Information Scraper
+
+**Tools Used:**
+- Selenium WebDriver
+- Chrome browser automation
+- WebDriverWait (explicit waits)
+- CSV processing
+- Regular expressions
+
+**Skills:**
+- Web scraping fundamentals
+- Browser automation
+- Data extraction and cleaning
+- Error handling and logging
+- Cross-platform deployment
+
+**Description:**
+Targeted scraper for static talent information (birthdays, heights, fan names, 
+hashtags). Uses explicit waiting strategies for reliable data extraction, 
+implements comprehensive text cleaning pipeline, handles missing or malformed 
+data, and maintains data integrity through validation. Designed for monthly 
+execution due to infrequent updates.
+
+---
+
+### 5. `extract.yml` - Analytics Extraction Workflow
+
+**Tools Used:**
+- GitHub Actions
+- Ubuntu runner environment
+- Git automation
+- Environment secrets management
+- Cron scheduling
+
+**Skills:**
+- CI/CD pipeline design
+- Automated scheduling
+- Secret management
+- Git workflow automation
+- Dependency caching
+
+**Description:**
+Automated daily workflow that triggers analytics extraction at 08:30 UTC. 
+Implements dependency caching for faster execution, secure API key management 
+through GitHub secrets, automated Git operations with conflict resolution, 
+and error handling with fallback mechanisms.
+
+---
+
+### 6. `scrape_dynamic.yml` - Dynamic Scraping Workflow
+
+**Tools Used:**
+- GitHub Actions with Chrome setup
+- Browser automation in CI environment
+- Hourly cron scheduling
+- Git automation
+
+**Skills:**
+- Complex CI/CD orchestration
+- Browser automation in headless environments
+- High-frequency scheduling management
+- Automated deployment pipelines
+
+**Description:**
+High-frequency automation pipeline running every hour to capture real-time 
+schedule updates. Configures Chrome and ChromeDriver in CI environment, 
+handles git conflicts with rebase strategies, manages browser dependencies 
+and drivers, and ensures consistent data updates with commit automation.
+
+---
+
+### 7. `scrape_static.yml` - Static Information Workflow
+
+**Tools Used:**
+- GitHub Actions
+- Monthly cron scheduling
+- Chrome browser setup
+- Git workflow automation
+
+**Skills:**
+- Long-term scheduling strategies
+- Resource optimization
+- Maintenance automation
+- Version control integration
+
+**Description:**
+Monthly maintenance workflow for static talent information updates. Optimized 
+for infrequent execution with full dependency installation, designed for data 
+consistency and integrity checks, handles talent roster changes and graduations, 
+and maintains historical data accuracy.
+
+---
+
+## Overall Technical Architecture
+
+**Integration Skills:**
+- Multi-source data pipeline orchestration
+- Real-time web application serving
+- Automated data synchronization
+- Cross-platform deployment
+- Performance optimization through caching
+
+**Advanced Concepts:**
+- Microservice-style data collection
+- Event-driven automation
+- Scalable web scraping architecture
+- API rate limiting and optimization
+- Progressive data enhancement (static → dynamic → analytics)
