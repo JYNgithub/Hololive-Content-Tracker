@@ -3,7 +3,7 @@ name: Daily Holo Scraper
 
 on:
   schedule:
-    - cron: '10 */2 * * *'  # every 2 hours at minute 10
+    - cron: '10 * * * *'  # every hour at minute 10
   workflow_dispatch:
 
 jobs:
@@ -36,17 +36,5 @@ jobs:
           install-chromedriver: true
           install-dependencies: true
 
-      - name: Configure Git & Pull Latest
-        run: |
-          git config --global user.name "JYNgithub"
-          git config --global user.email "chongjinjye@gmail.com"
-          git pull --rebase origin main
-
       - name: Run scraper
         run: python scrapers/scrape_dynamic_holo.py
-
-      - name: Commit CSV output
-        run: |
-          git add data/talent_schedule.csv
-          git commit -m "$(date -u +"%Y-%m-%d %H:%M UTC")" || echo "No changes to commit"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main

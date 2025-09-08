@@ -2,9 +2,11 @@ import logging
 import time
 import html
 import re
+import os
 import asyncio
 import pandas as pd
 from googletrans import Translator
+from sqlalchemy import create_engine, text
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -24,8 +26,10 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("googletrans").setLevel(logging.WARNING)
 
-base_url = "https://hololive.hololivepro.com/en/talents"
-data_path = "./data/talent_schedule.csv"
+BASE_URL = "https://hololive.hololivepro.com/en/talents"
+DATA_PATH = "./data/talent_schedule.csv"
+DB_URL = os.getenv("DB_URL")
+ENGINE = create_engine(DB_URL)
 
 ############################################
 # Utility Functions
@@ -199,7 +203,7 @@ async def data_preprocessing(data):
         df.index += 1
 
         # Save directly as CSV
-        df.to_csv(data_path, index=False, encoding="utf-8")
+        df.to_csv(DATA_PATH, index=False, encoding="utf-8")
         logging.info("Preprocessing complete...")
 
     except Exception as e:
@@ -256,6 +260,17 @@ def _sort_columns(key):
         
     return (len(col_order), key)
 
+def data_loading():
+    """
+    Load CSV into database
+    """
+    df = pd.read_csv(DATA_PATH)
+
+    with ENGINE.begin() as conn:
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS hololive"))
+
+    df.to_sql("talent_schedule", ENGINE, schema="hololive", if_exists="replace", index=False)
+
 def main():
 
     # Initialize the WebDriver and start the scraping process
@@ -264,7 +279,7 @@ def main():
 
     # Get all talent URLs to start scraping
     try:
-        all_urls = get_talent_urls(driver, base_url)
+        all_urls = get_talent_urls(driver, BASE_URL)
         data_dynamic_all = []
         for url in all_urls:
             data_dynamic = scrape_talent_info_dynamic(driver, url)
@@ -275,6 +290,9 @@ def main():
 
         # Preprocess data to save as csv
         asyncio.run(data_preprocessing(data_dynamic_all))
+        
+        # Load data into DB
+        data_loading()
 
     finally:
         driver.quit()

@@ -3,7 +3,9 @@ import time
 import csv
 import html
 import re
+import os
 import pandas as pd
+from sqlalchemy import create_engine, text
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -20,8 +22,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 
-base_url = "https://hololive.hololivepro.com/en/talents"
-data_path = "./data/talent_info.csv"
+BASE_URL = "https://hololive.hololivepro.com/en/talents"
+DATA_PATH = "./data/talent_info.csv"
+DB_URL = os.getenv("DB_URL")
+ENGINE = create_engine(DB_URL)
 
 ############################################
 # Utility Functions
@@ -161,7 +165,7 @@ def data_preprocessing(data):
         df = df[['Handle'] + [col for col in df.columns if col != 'Handle']]
         
         # Save directly as CSV
-        df.to_csv(data_path, index=False, encoding="utf-8")
+        df.to_csv(DATA_PATH, index=False, encoding="utf-8")
         logging.info("Preprocessing complete...")
 
     except Exception as e:
@@ -193,6 +197,17 @@ def _clean_value(value):
     value = re.sub(r"\s{2,}", " ", value)
     return value.strip()
 
+def data_loading():
+    """
+    Load CSV into database
+    """
+    df = pd.read_csv(DATA_PATH)
+
+    with ENGINE.begin() as conn:
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS hololive"))
+
+    df.to_sql("talent_info", ENGINE, schema="hololive", if_exists="replace", index=False)
+
 def main():
 
     # Initialize the WebDriver and start the scraping process
@@ -201,7 +216,7 @@ def main():
 
     # Get all talent URLs to start scraping
     try:
-        all_urls = get_talent_urls(driver, base_url)
+        all_urls = get_talent_urls(driver, BASE_URL)
         data_static_all = []
         for url in all_urls:
             data_static = scrape_talent_info_static(driver, url)
@@ -212,6 +227,9 @@ def main():
 
         # Save the static data to CSV
         data_preprocessing(data_static_all)
+        
+        # Load data into DB
+        data_loading()
 
     finally:
         driver.quit()

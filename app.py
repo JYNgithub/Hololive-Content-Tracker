@@ -5,6 +5,7 @@ import os
 import requests
 import hashlib
 from urllib.parse import urlparse
+from sqlalchemy import create_engine, text
 
 #########################################################
 # Configuration
@@ -13,11 +14,15 @@ from urllib.parse import urlparse
 # Let app content fill full viewport height
 ui.context.client.content.classes('h-screen bg-gradient-to-br from-white via-blue-50 to-blue-100 text-gray-800 font-sans')
 
+# Setup DB configuration
+DB_URL = os.getenv("DB_URL")
+ENGINE = create_engine(DB_URL)
+
 # Read talent data 
-df = pd.read_csv('./data/talent_schedule.csv')
+df = pd.read_sql(text("SELECT * FROM hololive.talent_schedule"), ENGINE)
 
 # Read analytics data (Data transformation runs here for now, in case of future updates)
-df_analytics = pd.read_csv('./data/talent_analytics.csv')
+df_analytics = pd.read_sql(text("SELECT * FROM hololive.talent_analytics"), ENGINE)
 df_analytics = df_analytics.groupby('handle', as_index=False)[['duration_hours', 'view_count', 'like_count', 'comment_count']].sum()
 
 # Ensure dirs

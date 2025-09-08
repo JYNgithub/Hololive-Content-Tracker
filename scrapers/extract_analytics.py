@@ -4,6 +4,7 @@ import html
 import iso8601
 import logging
 import pandas as pd
+from sqlalchemy import create_engine, text
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
@@ -16,10 +17,12 @@ logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 
 load_dotenv()
 API_KEY = os.getenv("YT_API_KEY")
+DB_URL = os.getenv("DB_URL")
+ENGINE = create_engine(DB_URL)
 df = pd.read_csv("./data/intermediate.csv")
 CHANNEL_HANDLES = df['Handle'].dropna().unique().tolist()
 EXTRACT_PERIOD = datetime.now(timezone.utc) - timedelta(days=7)  
-data_path = './data/talent_analytics.csv'
+DATA_PATH = './data/talent_analytics.csv'
 
 ############################################
 # Utility Functions
@@ -256,7 +259,7 @@ def data_preprocessing(data):
         
     df = pd.DataFrame(data)
     
-    df.to_csv(data_path, index=False, encoding="utf-8")
+    df.to_csv(DATA_PATH, index=False, encoding="utf-8")
 
 def _clean_value(value):
     """
@@ -285,6 +288,17 @@ def _clean_value(value):
 
     return value.strip()
 
+def data_loading():
+    """
+    Load CSV into database
+    """
+    df = pd.read_csv(DATA_PATH)
+
+    with ENGINE.begin() as conn:
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS hololive"))
+
+    df.to_sql("talent_analytics", ENGINE, schema="hololive", if_exists="replace", index=False)
+
 def main():
     try:
         # Initialize client
@@ -303,7 +317,11 @@ def main():
             except Exception as e:
                 logging.error(f"Failed to process {handle}: {e}")
 
+        # Save the analytics data to CSV
         data_preprocessing(data_analytics_all)
+        
+        # Load data into DB
+        data_loading()
 
     except Exception as e:
         logging.error(f"Error in main execution: {e}")
