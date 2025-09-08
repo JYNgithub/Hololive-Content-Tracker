@@ -294,9 +294,6 @@ def data_loading():
     """
     df = pd.read_csv(DATA_PATH)
 
-    with ENGINE.begin() as conn:
-        conn.execute(text("CREATE SCHEMA IF NOT EXISTS hololive"))
-
     df.to_sql("talent_analytics", ENGINE, schema="hololive", if_exists="replace", index=False)
 
 def main():
