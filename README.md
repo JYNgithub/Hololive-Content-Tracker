@@ -4,7 +4,7 @@
 
 Link here: https://hololive-content-tracker.onrender.com/
 
-The site currently only supports desktop use. Automatically updates every 2 hours.
+The site currently only supports desktop use. Automatically updates every hour.
 
 ## Description
 
