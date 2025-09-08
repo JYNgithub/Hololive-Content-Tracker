@@ -9,6 +9,9 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
 
     steps:
       - name: Checkout repo
