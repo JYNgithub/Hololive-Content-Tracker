@@ -20,6 +20,8 @@ jobs:
           try:
               r = requests.get(URL, timeout=10)
               print(f"{time.ctime()} - {r.status_code}")
+              print("Ping successful.")
           except Exception as e:
               print(f"{time.ctime()} - error: {e}")
+              print("Ping failed.")
           EOF
