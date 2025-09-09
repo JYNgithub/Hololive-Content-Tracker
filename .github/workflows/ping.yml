@@ -1,0 +1,24 @@
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: "*/8 * * * *"  # every 8 minutes
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: |
+          pip install requests
+          python - << 'EOF'
+          import requests, time
+          URL = "https://hololive-content-tracker.onrender.com/"
+          try:
+              r = requests.get(URL, timeout=10)
+              print(f"{time.ctime()} - {r.status_code}")
+          except Exception as e:
+              print(f"{time.ctime()} - error: {e}")
+          EOF
