@@ -3,6 +3,7 @@ name: Keep Alive
 on:
   schedule:
     - cron: "*/8 * * * *"  # every 8 minutes
+  workflow_dispatch:        # allow manual runs
 
 jobs:
   ping:
