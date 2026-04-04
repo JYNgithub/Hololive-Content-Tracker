@@ -14,7 +14,7 @@ except requests.exceptions.RequestException as e:
 
 # Simulate user activity
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
+    browser = p.chromium.launch(headless=False)
     agent = browser.new_context(
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         viewport={"width": 1280, "height": 720},
@@ -24,7 +24,8 @@ with sync_playwright() as p:
 
     # Navigate to the site and wait for it to load
     page.goto(URL)
-    page.wait_for_load_state("networkidle")
+    # page.wait_for_load_state("networkidle")
+    page.wait_for_load_state("domcontentloaded")
 
     # # Unused for now
     # # Action to mimic human behaviour
