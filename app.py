@@ -6,6 +6,7 @@ import requests
 import hashlib
 from urllib.parse import urlparse
 from sqlalchemy import create_engine, text
+from dotenv import load_dotenv
 
 #########################################################
 # Configuration
@@ -15,15 +16,12 @@ from sqlalchemy import create_engine, text
 ui.context.client.content.classes('h-screen bg-gradient-to-br from-white via-blue-50 to-blue-100 text-gray-800 font-sans')
 
 # Setup DB configuration
+load_dotenv()
 DB_URL = os.getenv("DB_URL")
 ENGINE = create_engine(DB_URL)
 
-# Read talent data 
-df = pd.read_sql(text("SELECT * FROM hololive.talent_schedule"), ENGINE)
-
-# Read analytics data (Data transformation runs here for now, in case of future updates)
-df_analytics = pd.read_sql(text("SELECT * FROM hololive.talent_analytics"), ENGINE)
-df_analytics = df_analytics.groupby('handle', as_index=False)[['duration_hours', 'view_count', 'like_count', 'comment_count']].sum()
+# Setup page count
+PAGE_NUM = pd.read_sql(text("SELECT COUNT(*) FROM hololive.talent_schedule"), ENGINE).iloc[0, 0]
 
 # Ensure dirs
 CACHE_DIR = "./data/cache"
@@ -39,7 +37,7 @@ def clickable_img_button(image_path: str, target_page: str, live: bool = False, 
     """
     Buttons in sidebar to redirect to respective talent's page
     Applied in layout()
-    Args:
+    Parameters:
         image_path: link to image in row['default_image']
         target_page: target page defined in Sidebar code chunk
         live: Whether talent has upcoming content or not
@@ -105,7 +103,7 @@ def character_img_display(image_path: str, box_width: int = 300, box_height: int
     """
     Display full image of talent in main content column
     Applied in layout()
-    Args:
+    Parameters:
         image_path: link to image in row['default_image']/image_path (same thing, fix later)
         box_width
         box_height
@@ -150,7 +148,7 @@ def clickable_wide_button(image_path: str, youtube_link: str, box_width: int = 3
     """
     Buttons to display upcoming content and redirect to that YouTube page
     Applied in layout()
-    Args:
+    Parameters:
         image_path: link to image in image{idx}
         youtube_link: target page defined in youtube_link{idx}
         box_width
@@ -181,14 +179,18 @@ def clickable_wide_button(image_path: str, youtube_link: str, box_width: int = 3
             'max-height: 100%; max-width: 100%; object-fit: contain; border-radius: 12px 0 0 12px;'
         )
 
-def layout(image_path: str, row: pd.DataFrame, i: int):
+def layout(i: int, df: pd.DataFrame, df_analytics: pd.DataFrame):
     """
     Full page layout including header, sidebar, footer, and content.
-    Args:
-        image_path: To display talent image (row['default_image'].iloc[0])
-        row: A single row of pd.DataFrame representing the talent displayed
+    Parameters:
         i: Index of that row
+        df: Full pd.DataFrame of talent_schedule
+        df_analytics: Full pd.DataFrame of talent_analytics
     """
+
+    # Define data for each section
+    row = df.iloc[[i]] # A single row of pd.DataFrame representing the talent displayed
+    image_path = row['default_image'].iloc[0] # To display talent image
     
     # Theme
     ui.add_head_html('''
@@ -302,15 +304,22 @@ def layout(image_path: str, row: pd.DataFrame, i: int):
 #########################################################
 
 # Dynamic Pages
-for i in range(len(df)):
+for i in range(PAGE_NUM):
     route = f"/page{i}"
     @ui.page(route)
     def _(i=i):
-        row = df.iloc[[i]]
+        # Read talent data
+        df = pd.read_sql(text("SELECT * FROM hololive.talent_schedule"), ENGINE)
+
+        # Read analytics data
+        df_analytics = pd.read_sql(text("SELECT * FROM hololive.talent_analytics"), ENGINE)
+        df_analytics = df_analytics.groupby('handle', as_index=False)[['duration_hours', 'view_count', 'like_count', 'comment_count']].sum()
+
+        # Setup row for that talent
         layout(
-            image_path=row['default_image'].iloc[0],
-            row=row,
-            i=i
+            i=i, 
+            df=df, 
+            df_analytics=df_analytics
         )
 
 @ui.page('/')
