@@ -6,7 +6,7 @@ This is an end-to-end data engineering project with automated data pipelines orc
 https://hololive-content-tracker.onrender.com/
 
 <div align="center">
-<img src="assets/architecture.png" width="50%">
+<img src="assets/architecture.png" width="75%">
 </div>
 
 **What it does:**
