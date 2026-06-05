@@ -1,14 +1,13 @@
 # Hololive Content Tracker
+A website that shows upcoming streams and performance analytics for talents from Hololive Production with automatic updates for fans to monitor their latest content.
 
-## Link 
+This is an end-to-end data engineering project with automated data pipelines orchestrated by a self-hosted Apache Airflow instance, performing scheduled ETL that scrapes and loads data into a cloud PostgreSQL database with the frontend served on Render.
 
-Link here: https://hololive-content-tracker.onrender.com/
+https://hololive-content-tracker.onrender.com/
 
-The site currently only supports desktop use. Automatically updates every hour.
-
-## Description
-
-This is Hololive Content Tracker - a web application that monitors and displays upcoming content from Hololive talents.
+<div align="center">
+<img src="assets/architecture.png" width="50%">
+</div>
 
 **What it does:**
 1. Shows upcoming scheduled streams/content for each talent with thumbnails and details
@@ -17,7 +16,8 @@ This is Hololive Content Tracker - a web application that monitors and displays 
 4. Provides clickable links to YouTube streams and talent pages
 
 **Key features:**
-1. Real-time updates: Automatically scrapes the official Hololive website hourly to get the latest scheduled content
+1. Scheduled updates: Automatically scrapes the official Hololive website to get the latest scheduled content
 2. Analytics tracking: Uses YouTube API to gather performance data from recent livestreams
-3. Always current: Automated data collection via GitHub Actions to keep information updated
+3. Structured architecture: Data collection is orchestrated via a self-hosted Apache Airflow instance, running scheduled DAG pipelines that handles ETL into a cloud PostgreSQL database
+
 
