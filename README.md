@@ -3,7 +3,7 @@ A website that shows upcoming streams and performance analytics for talents from
 
 https://hololive-content-tracker.onrender.com/
 
-This is an end-to-end data engineering project with automated data pipelines orchestrated by a self-hosted Apache Airflow instance, performing scheduled ETL that scrapes and loads data into a cloud PostgreSQL database, with the frontend served on Render. DAG definitions are available [here](https://github.com/JYNgithub/HLCT-Airflow-DAGs).
+This is an end-to-end data engineering project with automated data pipelines orchestrated by a self-hosted Apache Airflow instance, performing scheduled ETL that scrapes and loads data into a cloud PostgreSQL database, with the frontend served on Render. View the [data pipeline source code](https://github.com/JYNgithub/HLCT-Airflow-DAGs).
 
 
 <div align="center">
