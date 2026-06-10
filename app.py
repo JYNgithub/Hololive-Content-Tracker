@@ -1,4 +1,4 @@
-from nicegui import ui
+from nicegui import ui, app
 import pandas as pd
 from PIL import Image
 import os
@@ -325,11 +325,12 @@ for i in range(PAGE_NUM):
 @ui.page('/')
 def index():
     ui.label('Welcome! Redirecting...')
-    ui.timer(0.5, lambda: ui.navigate.to('/page0'))  # Redirect to first page
-    
+    ui.timer(0.5, lambda: ui.navigate.to('/page0'))
+
+app.add_static_files('/static', 'assets')
 ui.run(
-    title = 'Hololive Content Tracker',
-    favicon = './assets/site_logo.ico',
-    port=int(os.environ.get('PORT', 8080)),
+    title='Hololive Content Tracker',
+    favicon='site_logo.ico',
+    port=int(os.environ.get('PORT', 8000)),
     host='0.0.0.0'
 )
