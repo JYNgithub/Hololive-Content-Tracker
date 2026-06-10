@@ -2,3 +2,7 @@
 .venv/
 etc/
 test.py
+__pycache__/
+*.py[cod]
+logs/
+data/
